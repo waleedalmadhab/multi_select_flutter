@@ -21,6 +21,11 @@ class MultiSelectBottomSheet<T> extends StatefulWidget
   /// Fires when confirm is tapped.
   final void Function(List<T>)? onConfirm;
 
+  /// Fires when confirm is tapped.
+  final void Function()? onMaxError;
+
+
+
   /// Toggles search functionality.
   final bool searchable;
 
@@ -79,6 +84,10 @@ class MultiSelectBottomSheet<T> extends StatefulWidget
   /// Set the color of the check in the checkbox
   final Color? checkColor;
 
+  /// Set the color of the check in the checkbox
+  final int maxSelected;
+
+
   MultiSelectBottomSheet({
     required this.items,
     required this.initialValue,
@@ -103,7 +112,9 @@ class MultiSelectBottomSheet<T> extends StatefulWidget
     this.searchHintStyle,
     this.selectedItemsTextStyle,
     this.separateSelectedItems = false,
-    this.checkColor,
+    this.checkColor,this.maxSelected=3,
+  required  this.onMaxError
+
   });
 
   @override
@@ -121,12 +132,14 @@ class _MultiSelectBottomSheetState<T> extends State<MultiSelectBottomSheet<T>> {
   @override
   void initState() {
     super.initState();
-    _selectedValues.addAll(widget.initialValue);
+    // _selectedValues.addAll(widget.initialValue);
+    _selectedValues.clear();
+
+
 
     for (int i = 0; i < _items.length; i++) {
-      if (_selectedValues.contains(_items[i].value)) {
-        _items[i].selected = true;
-      }
+        _items[i].selected = false;
+
     }
 
     if (widget.separateSelectedItems) {
@@ -154,22 +167,50 @@ class _MultiSelectBottomSheetState<T> extends State<MultiSelectBottomSheet<T>> {
         ),
         controlAffinity: ListTileControlAffinity.leading,
         onChanged: (checked) {
-          setState(() {
-            _selectedValues = widget.onItemCheckedChange(
-                _selectedValues, item.value, checked!);
 
-            if (checked) {
-              item.selected = true;
-            } else {
-              item.selected = false;
+            setState(() {
+
+              bool allow=(_selectedValues.length<widget.maxSelected ) && checked! ;
+
+              _selectedValues = widget.onItemCheckedChange(
+                  _selectedValues, item.value,allow );
+
+              if (allow) {
+                item.selected = true;
+              } else {
+                item.selected = false;
+              }
+
+
+
+
+                if(checked! ==true && allow==false){
+                          if(widget.onMaxError !=null){
+                            widget.onMaxError!();
+                          }
+                        }
+
+
+              // if(_selectedValues.length<widget.maxSelected) {
+
+    if (widget.separateSelectedItems) {
+    _items = widget.separateSelected(_items);
+    }
+    // }
+    //           else{
+    //             if(widget.onMaxError !=null){
+    //               widget.onMaxError!();
+    //             }
+    //           }
+
+
+            });
+            if (widget.onSelectionChanged != null) {
+              widget.onSelectionChanged!(_selectedValues);
             }
-            if (widget.separateSelectedItems) {
-              _items = widget.separateSelected(_items);
-            }
-          });
-          if (widget.onSelectionChanged != null) {
-            widget.onSelectionChanged!(_selectedValues);
-          }
+
+
+
         },
       ),
     );

@@ -10,6 +10,7 @@ class MultiSelectActions<T> {
     } else {
       selectedValues.remove(itemValue);
     }
+
     return selectedValues;
   }
 

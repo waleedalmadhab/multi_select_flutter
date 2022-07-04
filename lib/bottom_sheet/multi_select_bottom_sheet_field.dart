@@ -12,10 +12,10 @@ class MultiSelectBottomSheetField<V> extends FormField<List<V>> {
   final BoxDecoration? decoration;
 
   /// Set text that is displayed on the button.
-  final Text? buttonText;
+  final Widget? buttonText;
 
   /// Specify the button icon.
-  final Icon? buttonIcon;
+  final Widget? buttonIcon;
 
   /// List of items to select from.
   final List<MultiSelectItem<V>> items;
@@ -31,6 +31,11 @@ class MultiSelectBottomSheetField<V> extends FormField<List<V>> {
 
   /// Fires when confirm is tapped.
   final void Function(List<V>) onConfirm;
+
+
+  /// Fires when confirm is tapped.
+  final void Function()? onMaxError;
+
 
   /// Toggles search functionality.
   final bool searchable;
@@ -108,6 +113,7 @@ class MultiSelectBottomSheetField<V> extends FormField<List<V>> {
   final FormFieldSetter<List<V>>? onSaved;
   final GlobalKey<FormFieldState>? key;
   FormFieldState<List<V>>? state;
+  int maxSelected ;
 
   MultiSelectBottomSheetField({
     required this.items,
@@ -118,6 +124,7 @@ class MultiSelectBottomSheetField<V> extends FormField<List<V>> {
     this.listType,
     this.decoration,
     this.onSelectionChanged,
+   required this.onMaxError,
     this.chipDisplay,
     this.initialValue,
     this.searchable = false,
@@ -144,6 +151,7 @@ class MultiSelectBottomSheetField<V> extends FormField<List<V>> {
     this.key,
     this.onSaved,
     this.validator,
+    this.maxSelected=3,
     this.autovalidateMode = AutovalidateMode.disabled,
   }) : super(
             key: key,
@@ -185,6 +193,8 @@ class MultiSelectBottomSheetField<V> extends FormField<List<V>> {
                 separateSelectedItems: separateSelectedItems,
                 shape: shape,
                 checkColor: checkColor,
+                    onMaxError: onMaxError,
+                    maxSelect: maxSelected,
               );
               return _MultiSelectBottomSheetFieldView<V?>._withState(
                   view as _MultiSelectBottomSheetFieldView<V?>, state);
@@ -194,13 +204,14 @@ class MultiSelectBottomSheetField<V> extends FormField<List<V>> {
 // ignore: must_be_immutable
 class _MultiSelectBottomSheetFieldView<V> extends StatefulWidget {
   final BoxDecoration? decoration;
-  final Text? buttonText;
-  final Icon? buttonIcon;
+  final Widget? buttonText;
+  final Widget? buttonIcon;
   final List<MultiSelectItem<V>> items;
   final List<V>? initialValue;
   final Widget? title;
   final void Function(List<V>)? onSelectionChanged;
   final void Function(List<V>)? onConfirm;
+  final void Function()? onMaxError;
   final bool searchable;
   final Text? confirmText;
   final Text? cancelText;
@@ -224,6 +235,7 @@ class _MultiSelectBottomSheetFieldView<V> extends StatefulWidget {
   final TextStyle? searchHintStyle;
   final bool separateSelectedItems;
   final Color? checkColor;
+  final int maxSelect;
   FormFieldState<List<V>>? state;
 
   _MultiSelectBottomSheetFieldView({
@@ -234,6 +246,7 @@ class _MultiSelectBottomSheetFieldView<V> extends StatefulWidget {
     this.listType,
     this.decoration,
     this.onSelectionChanged,
+   required this.onMaxError,
     this.onConfirm,
     this.chipDisplay,
     this.initialValue,
@@ -257,7 +270,7 @@ class _MultiSelectBottomSheetFieldView<V> extends StatefulWidget {
     this.searchHintStyle,
     this.selectedItemsTextStyle,
     this.separateSelectedItems = false,
-    this.checkColor,
+    this.checkColor,this.maxSelect=3
   });
 
   /// This constructor allows a FormFieldState to be passed in. Called by MultiSelectBottomSheetField.
@@ -294,7 +307,11 @@ class _MultiSelectBottomSheetFieldView<V> extends StatefulWidget {
         selectedItemsTextStyle = field.selectedItemsTextStyle,
         separateSelectedItems = field.separateSelectedItems,
         checkColor = field.checkColor,
+        maxSelect = field.maxSelect,
+        onMaxError = field.onMaxError,
+
         state = state;
+
 
   @override
   __MultiSelectBottomSheetFieldViewState createState() =>
@@ -308,9 +325,16 @@ class __MultiSelectBottomSheetFieldViewState<V>
   @override
   void initState() {
     super.initState();
-    if (widget.initialValue != null) {
-      _selectedItems.addAll(widget.initialValue!);
-    }
+    _selectedItems.clear();
+
+    // if (widget.initialValue != null) {
+    //
+    //
+    //  // _selectedItems.addAll(widget.initialValue!);
+    //
+    //   _selectedItems=widget!.initialValue!;
+    //
+    // }
   }
 
   Widget _buildInheritedChipDisplay() {
@@ -371,6 +395,7 @@ class __MultiSelectBottomSheetFieldViewState<V>
   }
 
   _showBottomSheet(BuildContext ctx) async {
+    _selectedItems.clear();
     await showModalBottomSheet(
         backgroundColor: widget.backgroundColor,
         barrierColor: widget.barrierColor,
@@ -383,6 +408,7 @@ class __MultiSelectBottomSheetFieldViewState<V>
         builder: (context) {
           return MultiSelectBottomSheet<V>(
             checkColor: widget.checkColor,
+
             selectedItemsTextStyle: widget.selectedItemsTextStyle,
             searchTextStyle: widget.searchTextStyle,
             searchHintStyle: widget.searchHintStyle,
@@ -398,7 +424,12 @@ class __MultiSelectBottomSheetFieldViewState<V>
             cancelText: widget.cancelText,
             confirmText: widget.confirmText,
             separateSelectedItems: widget.separateSelectedItems,
-            initialValue: _selectedItems,
+            initialValue: [],
+            maxSelected: widget.maxSelect,
+            onMaxError: (){
+              widget.onMaxError!();
+            },
+
             onConfirm: (selected) {
               if (widget.state != null) {
                 widget.state!.didChange(selected);
@@ -429,24 +460,24 @@ class __MultiSelectBottomSheetFieldViewState<V>
             decoration: widget.state != null
                 ? widget.decoration ??
                     BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: widget.state != null && widget.state!.hasError
-                              ? Colors.red.shade800.withOpacity(0.6)
-                              : _selectedItems.isNotEmpty
-                                  ? (widget.selectedColor != null &&
-                                          widget.selectedColor !=
-                                              Colors.transparent)
-                                      ? widget.selectedColor!
-                                      : Theme.of(context).primaryColor
-                                  : Colors.black45,
-                          width: _selectedItems.isNotEmpty
-                              ? (widget.state != null && widget.state!.hasError)
-                                  ? 1.4
-                                  : 1.8
-                              : 1.2,
-                        ),
-                      ),
+                      // border: Border(
+                      //   bottom: BorderSide(
+                      //     color: widget.state != null && widget.state!.hasError
+                      //         ? Colors.red.shade800.withOpacity(0.6)
+                      //         : _selectedItems.isNotEmpty
+                      //             ? (widget.selectedColor != null &&
+                      //                     widget.selectedColor !=
+                      //                         Colors.transparent)
+                      //                 ? widget.selectedColor!
+                      //                 : Theme.of(context).primaryColor
+                      //             : Colors.black45,
+                      //     width: _selectedItems.isNotEmpty
+                      //         ? (widget.state != null && widget.state!.hasError)
+                      //             ? 1.4
+                      //             : 1.8
+                      //         : 1.2,
+                      //   ),
+                      // ),
                     )
                 : widget.decoration,
             padding: EdgeInsets.all(10),
