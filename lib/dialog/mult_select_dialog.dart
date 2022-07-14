@@ -78,6 +78,10 @@ class MultiSelectDialog<T> extends StatefulWidget with MultiSelectActions<T> {
   /// Set the color of the check in the checkbox
   final Color? checkColor;
 
+  final int maxSelected;
+  Function onMaxError;
+
+
   MultiSelectDialog({
     required this.items,
     required this.initialValue,
@@ -102,7 +106,9 @@ class MultiSelectDialog<T> extends StatefulWidget with MultiSelectActions<T> {
     this.searchTextStyle,
     this.selectedItemsTextStyle,
     this.separateSelectedItems = false,
-    this.checkColor,
+    this.checkColor,this.maxSelected=3,
+    required this.onMaxError
+
   });
 
   @override
@@ -153,17 +159,45 @@ class _MultiSelectDialogState<T> extends State<MultiSelectDialog<T>> {
         controlAffinity: ListTileControlAffinity.leading,
         onChanged: (checked) {
           setState(() {
-            _selectedValues = widget.onItemCheckedChange(
-                _selectedValues, item.value, checked!);
 
-            if (checked) {
+            // _selectedValues = widget.onItemCheckedChange(
+            //     _selectedValues, item.value, checked!);
+            //
+            // if (checked) {
+            //   item.selected = true;
+            // } else {
+            //   item.selected = false;
+            // }
+            bool allow=(_selectedValues.length<widget.maxSelected ) && checked! ;
+
+            _selectedValues = widget.onItemCheckedChange(
+                _selectedValues, item.value,allow );
+
+            if (allow) {
               item.selected = true;
             } else {
               item.selected = false;
             }
+
+
+
+
+            if(checked! ==true && allow==false){
+              if(widget.onMaxError !=null){
+                widget.onMaxError!();
+              }
+            }
+
+
+
+
             if (widget.separateSelectedItems) {
               _items = widget.separateSelected(_items);
             }
+
+
+
+
           });
           if (widget.onSelectionChanged != null) {
             widget.onSelectionChanged!(_selectedValues);
@@ -186,12 +220,12 @@ class _MultiSelectDialogState<T> extends State<MultiSelectDialog<T>> {
           item.label,
           style: item.selected
               ? TextStyle(
-                  color: widget.selectedItemsTextStyle?.color ??
-                      widget.colorator?.call(item.value) ??
-                      widget.selectedColor?.withOpacity(1) ??
-                      Theme.of(context).primaryColor,
-                  fontSize: widget.selectedItemsTextStyle?.fontSize,
-                )
+            color: widget.selectedItemsTextStyle?.color ??
+                widget.colorator?.call(item.value) ??
+                widget.selectedColor?.withOpacity(1) ??
+                Theme.of(context).primaryColor,
+            fontSize: widget.selectedItemsTextStyle?.fontSize,
+          )
               : widget.itemsTextStyle,
         ),
         selected: item.selected,
@@ -220,80 +254,80 @@ class _MultiSelectDialogState<T> extends State<MultiSelectDialog<T>> {
       title: widget.searchable == false
           ? widget.title ?? const Text("Select")
           : Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                _showSearch
-                    ? Expanded(
-                        child: Container(
-                          padding: EdgeInsets.only(left: 10),
-                          child: TextField(
-                            style: widget.searchTextStyle,
-                            decoration: InputDecoration(
-                              hintStyle: widget.searchHintStyle,
-                              hintText: widget.searchHint ?? "Search",
-                              focusedBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: widget.selectedColor ??
-                                      Theme.of(context).primaryColor,
-                                ),
-                              ),
-                            ),
-                            onChanged: (val) {
-                              List<MultiSelectItem<T>> filteredList = [];
-                              filteredList =
-                                  widget.updateSearchQuery(val, widget.items);
-                              setState(() {
-                                if (widget.separateSelectedItems) {
-                                  _items =
-                                      widget.separateSelected(filteredList);
-                                } else {
-                                  _items = filteredList;
-                                }
-                              });
-                            },
-                          ),
-                        ),
-                      )
-                    : widget.title ?? Text("Select"),
-                IconButton(
-                  icon: _showSearch
-                      ? widget.closeSearchIcon ?? Icon(Icons.close)
-                      : widget.searchIcon ?? Icon(Icons.search),
-                  onPressed: () {
-                    setState(() {
-                      _showSearch = !_showSearch;
-                      if (!_showSearch) {
-                        if (widget.separateSelectedItems) {
-                          _items = widget.separateSelected(widget.items);
-                        } else {
-                          _items = widget.items;
-                        }
-                      }
-                    });
-                  },
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          _showSearch
+              ? Expanded(
+            child: Container(
+              padding: EdgeInsets.only(left: 10),
+              child: TextField(
+                style: widget.searchTextStyle,
+                decoration: InputDecoration(
+                  hintStyle: widget.searchHintStyle,
+                  hintText: widget.searchHint ?? "Search",
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: widget.selectedColor ??
+                          Theme.of(context).primaryColor,
+                    ),
+                  ),
                 ),
-              ],
+                onChanged: (val) {
+                  List<MultiSelectItem<T>> filteredList = [];
+                  filteredList =
+                      widget.updateSearchQuery(val, widget.items);
+                  setState(() {
+                    if (widget.separateSelectedItems) {
+                      _items =
+                          widget.separateSelected(filteredList);
+                    } else {
+                      _items = filteredList;
+                    }
+                  });
+                },
+              ),
             ),
+          )
+              : widget.title ?? Text("Select"),
+          IconButton(
+            icon: _showSearch
+                ? widget.closeSearchIcon ?? Icon(Icons.close)
+                : widget.searchIcon ?? Icon(Icons.search),
+            onPressed: () {
+              setState(() {
+                _showSearch = !_showSearch;
+                if (!_showSearch) {
+                  if (widget.separateSelectedItems) {
+                    _items = widget.separateSelected(widget.items);
+                  } else {
+                    _items = widget.items;
+                  }
+                }
+              });
+            },
+          ),
+        ],
+      ),
       contentPadding:
-          widget.listType == null || widget.listType == MultiSelectListType.LIST
-              ? EdgeInsets.only(top: 12.0)
-              : EdgeInsets.all(20),
+      widget.listType == null || widget.listType == MultiSelectListType.LIST
+          ? EdgeInsets.only(top: 12.0)
+          : EdgeInsets.all(20),
       content: Container(
         height: widget.height,
         width: widget.width ?? MediaQuery.of(context).size.width * 0.73,
         child: widget.listType == null ||
-                widget.listType == MultiSelectListType.LIST
+            widget.listType == MultiSelectListType.LIST
             ? ListView.builder(
-                itemCount: _items.length,
-                itemBuilder: (context, index) {
-                  return _buildListItem(_items[index]);
-                },
-              )
+          itemCount: _items.length,
+          itemBuilder: (context, index) {
+            return _buildListItem(_items[index]);
+          },
+        )
             : SingleChildScrollView(
-                child: Wrap(
-                  children: _items.map(_buildChipItem).toList(),
-                ),
-              ),
+          child: Wrap(
+            children: _items.map(_buildChipItem).toList(),
+          ),
+        ),
       ),
       actions: <Widget>[
         TextButton(
@@ -302,7 +336,7 @@ class _MultiSelectDialogState<T> extends State<MultiSelectDialog<T>> {
                 "CANCEL",
                 style: TextStyle(
                   color: (widget.selectedColor != null &&
-                          widget.selectedColor != Colors.transparent)
+                      widget.selectedColor != Colors.transparent)
                       ? widget.selectedColor!.withOpacity(1)
                       : Theme.of(context).primaryColor,
                 ),
@@ -317,7 +351,7 @@ class _MultiSelectDialogState<T> extends State<MultiSelectDialog<T>> {
                 'OK',
                 style: TextStyle(
                   color: (widget.selectedColor != null &&
-                          widget.selectedColor != Colors.transparent)
+                      widget.selectedColor != Colors.transparent)
                       ? widget.selectedColor!.withOpacity(1)
                       : Theme.of(context).primaryColor,
                 ),
