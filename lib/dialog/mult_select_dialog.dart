@@ -79,7 +79,7 @@ class MultiSelectDialog<T> extends StatefulWidget with MultiSelectActions<T> {
   final Color? checkColor;
 
   final int maxSelected;
-  Function onMaxError;
+  Function? onMaxError;
 
 
   MultiSelectDialog({
@@ -107,7 +107,7 @@ class MultiSelectDialog<T> extends StatefulWidget with MultiSelectActions<T> {
     this.selectedItemsTextStyle,
     this.separateSelectedItems = false,
     this.checkColor,this.maxSelected=3,
-    required this.onMaxError
+    this.onMaxError
 
   });
 
