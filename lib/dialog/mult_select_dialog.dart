@@ -125,17 +125,18 @@ class _MultiSelectDialogState<T> extends State<MultiSelectDialog<T>> {
   @override
   void initState() {
     super.initState();
-    // _selectedValues.addAll(widget.initialValue);
-    //
-    // for (int i = 0; i < _items.length; i++) {
-    //   if (_selectedValues.contains(_items[i].value)) {
-    //     _items[i].selected = true;
-    //   }
-    // }
-    //
-    // if (widget.separateSelectedItems) {
-    //   _items = widget.separateSelected(_items);
-    // }
+
+    _selectedValues.addAll(widget.initialValue);
+
+    for (int i = 0; i < _items.length; i++) {
+      if (_selectedValues.contains(_items[i].value)) {
+        _items[i].selected = true;
+      }
+    }
+
+    if (widget.separateSelectedItems) {
+      _items = widget.separateSelected(_items);
+    }
   }
 
   /// Returns a CheckboxListTile
@@ -168,7 +169,7 @@ class _MultiSelectDialogState<T> extends State<MultiSelectDialog<T>> {
             // } else {
             //   item.selected = false;
             // }
-            bool allow=(_selectedValues.length<widget.maxSelected ) && checked! ;
+            bool allow=(_selectedValues.length<widget.maxSelected )  ;
 
             _selectedValues = widget.onItemCheckedChange(
                 _selectedValues, item.value,allow );
