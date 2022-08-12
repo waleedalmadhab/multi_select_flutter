@@ -125,17 +125,17 @@ class _MultiSelectDialogState<T> extends State<MultiSelectDialog<T>> {
   @override
   void initState() {
     super.initState();
-    _selectedValues.addAll(widget.initialValue);
-
-    for (int i = 0; i < _items.length; i++) {
-      if (_selectedValues.contains(_items[i].value)) {
-        _items[i].selected = true;
-      }
-    }
-
-    if (widget.separateSelectedItems) {
-      _items = widget.separateSelected(_items);
-    }
+    // _selectedValues.addAll(widget.initialValue);
+    //
+    // for (int i = 0; i < _items.length; i++) {
+    //   if (_selectedValues.contains(_items[i].value)) {
+    //     _items[i].selected = true;
+    //   }
+    // }
+    //
+    // if (widget.separateSelectedItems) {
+    //   _items = widget.separateSelected(_items);
+    // }
   }
 
   /// Returns a CheckboxListTile
