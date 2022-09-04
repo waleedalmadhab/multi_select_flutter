@@ -117,10 +117,11 @@ class MultiSelectDialog<T> extends StatefulWidget with MultiSelectActions<T> {
 
 class _MultiSelectDialogState<T> extends State<MultiSelectDialog<T>> {
   List<T> _selectedValues = [];
-  bool _showSearch = false;
+  bool _showSearch = true;
   List<MultiSelectItem<T>> _items;
 
   _MultiSelectDialogState(this._items);
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -137,6 +138,9 @@ class _MultiSelectDialogState<T> extends State<MultiSelectDialog<T>> {
     if (widget.separateSelectedItems) {
       _items = widget.separateSelected(_items);
     }
+
+    FocusManager.instance.primaryFocus?.requestFocus(_focusNode);
+
   }
 
   /// Returns a CheckboxListTile
@@ -263,6 +267,7 @@ class _MultiSelectDialogState<T> extends State<MultiSelectDialog<T>> {
               padding: EdgeInsets.only(left: 10),
               child: TextField(
                 style: widget.searchTextStyle,
+                focusNode: _focusNode,
                 decoration: InputDecoration(
                   hintStyle: widget.searchHintStyle,
                   hintText: widget.searchHint ?? "Search",
