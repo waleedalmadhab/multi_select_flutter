@@ -127,12 +127,19 @@ class _MultiSelectDialogState<T> extends State<MultiSelectDialog<T>> {
   void initState() {
     super.initState();
 
-    _selectedValues.addAll(widget.initialValue);
+
+    _selectedValues=widget.initialValue;
+    print('****************************8   ${_selectedValues.length}');
 
     for (int i = 0; i < _items.length; i++) {
+      _items[i].selected = false;
+
       if (_selectedValues.contains(_items[i].value)) {
         _items[i].selected = true;
+
       }
+
+
     }
 
     if (widget.separateSelectedItems) {
@@ -178,7 +185,7 @@ class _MultiSelectDialogState<T> extends State<MultiSelectDialog<T>> {
             _selectedValues = widget.onItemCheckedChange(
                 _selectedValues, item.value,allow );
 
-            if (allow) {
+            if (allow && checked!) {
               item.selected = true;
             } else {
               item.selected = false;
@@ -254,6 +261,9 @@ class _MultiSelectDialogState<T> extends State<MultiSelectDialog<T>> {
 
   @override
   Widget build(BuildContext context) {
+
+
+
     return AlertDialog(
       backgroundColor: widget.backgroundColor,
       title: widget.searchable == false
